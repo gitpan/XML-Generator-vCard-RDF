@@ -1,10 +1,10 @@
-# $Id: RDF.pm,v 1.16 2004/10/17 23:05:35 asc Exp $
+# $Id: RDF.pm,v 1.18 2004/11/16 17:05:13 asc Exp $
 use strict;
 
 package XML::Generator::vCard::RDF;
 use base qw (XML::SAX::Base);
 
-$XML::Generator::vCard::RDF::VERSION = '1.1';
+$XML::Generator::vCard::RDF::VERSION = '1.2';
 
 =head1 NAME
 
@@ -971,7 +971,7 @@ sub _renderlist {
 
 	if ($bag) {
 	    $self->start_element({Name       => "rdf:li",
-				  Attributes => \%parsetype});
+				  Attributes => {%parsetype}});
 	}
 
 	$self->_types($obj->types());
@@ -1127,11 +1127,11 @@ namespaces :
 
 =head1 VERSION
 
-1.1
+1.2
 
 =head1 DATE
 
-$Date: 2004/10/17 23:05:35 $
+$Date: 2004/11/16 17:05:13 $
 
 =head1 AUTHOR
 
@@ -1145,7 +1145,12 @@ L<XML::Generator::vCard>
 
 =head1 BUGS
 
-Please report all bugs via http://rt.cpan.org
+vCards containg binary PHOTO images may cause Perl to segfault on
+Mac OSX and come flavours of Linux (but not FreeBSD.) The source of
+this problem has been traced, I think, to a regular expression issue
+in the Perl Text::ParseWords library. A bug report has been filed.
+
+Please report all other bugs via http://rt.cpan.org
 
 =head1 LICENSE
 
