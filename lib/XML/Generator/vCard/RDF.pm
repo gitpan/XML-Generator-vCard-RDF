@@ -1,10 +1,10 @@
-# $Id: RDF.pm,v 1.20 2004/12/22 17:45:13 asc Exp $
+# $Id: RDF.pm,v 1.24 2004/12/28 21:50:27 asc Exp $
 use strict;
 
 package XML::Generator::vCard::RDF;
-use base qw (XML::SAX::Base);
+use base qw (XML::Generator::vCard::Base);
 
-$XML::Generator::vCard::RDF::VERSION = '1.3';
+$XML::Generator::vCard::RDF::VERSION = '1.4';
 
 =head1 NAME
 
@@ -77,14 +77,12 @@ use Text::vCard::Addressbook;
 use Memoize;
 use Digest::SHA1 qw (sha1_hex);
 
-use constant NS => {"vCard" => "http://www.w3.org/2001/vcard-rdf/3.0#",
-		    "rdf"   => "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-		    "rdfs"  => "http://www.w3.org/2000/01/rdf-schema#",
-		    "geo"   => "http://www.w3.org/2003/01/geo/wgs84_pos#",
-		    "foaf"  => "http://xmlns.com/foaf/0.1/"};
-
 sub import {
-    &memoize("_prepare_name","_prepare_mbox");
+    my $pkg = shift;
+    $pkg->SUPER::import(@_);
+
+    &memoize("_prepare_mbox");
+    return 1;
 }
 
 =head1 PACKAGE METHODS
@@ -118,11 +116,7 @@ sub new {
 
 =cut
 
-=head2 $pkg->parse_files(@files)
-
-Generate SAX2 events for one, or more, vCard files.
-
-Returns true or false.
+=head1 OBJECT METHODS
 
 =cut
 
@@ -131,12 +125,20 @@ sub base {
     my $uri  = shift;
 
     if ($uri) {
-	$self->{'__uri'} = $uri;
+	$self->{'__uri'} = $self->prepare_uri($uri);
     }
 
     return ($self->{'__uri'} || "#");
 }
-    
+
+=head2 $pkg->parse_files(@files)
+
+Generate SAX2 events for one, or more, vCard files.
+
+Returns true or false.
+
+=cut
+
 =head2 $pkg->parse_files(@files)
 
 =cut
@@ -863,16 +865,6 @@ sub _im_services {
 	    "icq"    => "foaf:icqChatID"};
 }
 
-=head2 $obj->_namespaces()
-
-Returns a hash reference of prefix - URI pairs.
-
-=cut
-
-sub _namespaces {
-    return NS;
-}
-
 sub _pcdata {
   my $self = shift;
   my $data = shift;
@@ -906,11 +898,13 @@ sub _media {
 sub _types {
     my $self = shift;
     
-    foreach my $type (grep { /\w/ } @_) {
+    my $ns = $self->namespaces();
+
+    foreach my $type (grep { defined($_) && $_ =~ m/\w/ } @_) {
 	
 	$self->start_element({Name       => "rdf:type",
 			      Attributes => {"{}resource" => {Name  => "rdf:resource",
-							      Value => NS->{vCard}.$type}}
+							      Value => $ns->{vCard}.$type}}
 			  });
 	$self->end_element({Name => "rdf:type"});
     }
@@ -934,7 +928,7 @@ sub start_document {
     $self->xml_decl({Version  => "1.0",
 		     Encoding => "UTF-8"});
 
-    my $ns = $self->_namespaces();
+    my $ns = $self->namespaces();
 
     foreach my $prefix (keys %$ns) {
 	$self->start_prefix_mapping({Prefix       => $prefix,
@@ -947,7 +941,7 @@ sub start_document {
 sub end_document {
     my $self = shift;
 
-    foreach my $prefix (keys %{$self->_namespaces()}) {
+    foreach my $prefix (keys %{$self->namespaces()}) {
 	$self->end_prefix_mapping({Prefix => $prefix});
     }
 
@@ -959,8 +953,8 @@ sub start_element {
   my $self = shift;
   my $data = shift;
 
-  my $name  = &_prepare_name($data->{Name});
-  my $attrs = &_prepare_attrs($data->{Attributes});
+  my $name  = $self->prepare_qname($data->{Name});
+  my $attrs = $self->prepare_attrs($data->{Attributes});
 
   $self->SUPER::start_element({ %$name, %$attrs });
 }
@@ -969,54 +963,9 @@ sub end_element {
   my $self = shift;
   my $data = shift;
 
-  my $name = &_prepare_name($data->{Name});
+  my $name = $self->prepare_qname($data->{Name});
 
   $self->SUPER::end_element($name);
-}
-
-# memoized
-
-sub _prepare_name {
-    my $qname  = shift;
-
-    $qname =~ /^([^:]+):(.*)$/;
-
-    my $prefix = $1;
-    my $name   = $2;
-
-    my $ns     = NS->{ $prefix };
-	
-    return {Name         => $qname,
-	    LocalName    => $name,
-	    Prefix       => $prefix,
-	    NamespaceURI => $ns};
-}
-
-sub _prepare_attrs {
-    my $attrs = shift;
-
-    foreach my $uri (keys %$attrs) {
-	
-	my ($key, $data) = &_prepare_attr($attrs->{$uri});
-	
-	$attrs->{ $key } = $data;
-	delete $attrs->{$uri};
-    }
-
-    return {Attributes => $attrs};
-}
-
-sub _prepare_attr {
-    my $attr = shift;
-
-    my $data       = &_prepare_name($attr->{Name});
-    $data->{Value} = $attr->{Value};
-
-    my $fq_uri = sprintf("{%s}%s",
-			     $data->{NamespaceURI},
-			     $data->{LocalName});
-
-    return ($fq_uri,$data);
 }
 
 sub _renderlist {
@@ -1177,7 +1126,7 @@ sub _mediaobj {
 sub _prepare_mbox {
     my $email_addr = shift;
     return encode_utf8(sprintf("%smbox_sha1sum#%s",
-			       __PACKAGE__->_namespaces()->{foaf},
+			       __PACKAGE__->namespaces()->{foaf},
 			       sha1_hex($email_addr)));
 }
 
@@ -1234,11 +1183,11 @@ namespaces :
 
 =head1 VERSION
 
-1.3
+1.4
 
 =head1 DATE
 
-$Date: 2004/12/22 17:45:13 $
+$Date: 2004/12/28 21:50:27 $
 
 =head1 AUTHOR
 
