@@ -10,6 +10,7 @@ WriteMakefile(
 	      'PREREQ_PM'    => {
 		  'XML::SAX'      => '0.12',
 		  'Text::vCard'   => '1.9',
+		  'Digest::SHA1'  => '2.10',
 		  'Encode'        => '0',
 		  'Memoize'       => '0',
 		  'Test::More'    => '0',

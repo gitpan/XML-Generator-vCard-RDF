@@ -1,10 +1,10 @@
-# $Id: RDF.pm,v 1.18 2004/11/16 17:05:13 asc Exp $
+# $Id: RDF.pm,v 1.20 2004/12/22 17:45:13 asc Exp $
 use strict;
 
 package XML::Generator::vCard::RDF;
 use base qw (XML::SAX::Base);
 
-$XML::Generator::vCard::RDF::VERSION = '1.2';
+$XML::Generator::vCard::RDF::VERSION = '1.3';
 
 =head1 NAME
 
@@ -31,20 +31,60 @@ W3C note:
 
  http://www.w3.org/TR/2001/NOTE-vcard-rdf-20010222/
 
+Additionally, an extra description will be added for each unique
+email address. Each description will be identified by the value of
+SHA1 digest of the address and simply point back to the vCard
+description.
+
+For example, the test file for this package contains the email
+address I<senzala@example.com> which will cause the following
+description to be added to the final output :
+
+ <rdf:RDF>
+  <rdf:Description rdf:about = 't/Senzala.vcf'>
+   <!-- vcard data here -->
+  </rdf:Description>
+
+  <!-- c0e0c54660f33a3ec7f22f902d0e5ead8bd4e4f4 == SHA1(senzala@example.com) -->
+
+  <rdf:Description rdf:about='http://xmlns.com/foaf/0.1/mbox_sha1sum#c0e0c54660f33a3ec7f22f902d0e5ead8bd4e4f4'>
+   <rdfs:seeAlso rdf:resource='t/Senzala.vcf' /></rdf:Description>
+  </rdf:Description>
+ </rdf:RDF>
+
+This is done to facilitate merging vCard data with RDF representations
+of email messages, using XML::Generator::RFC822::RDF. For example :
+
+ <rdf:RDF>
+
+  <rdf:Description rdf:about='x-urn:ietf:params:rfc822#5b0c8c9f9b2b782375f515a0b24b3a821a59a34a'>
+   <rfc822:To rdf:resource='http://xmlns.com/foaf/0.1/mbox_sha1sum#c0e0c54660f33a3ec7f22f902d0e5ead8bd4e4f4' />
+   <!-- ... -->
+  </rdf:Description>
+
+  <rdf:Description rdf:about='http://xmlns.com/foaf/0.1/mbox_sha1sum#c0e0c54660f33a3ec7f22f902d0e5ead8bd4e4f4'>
+   <vCard:FN>Senzala Restaurant</vCard:FN>
+   <vCard:EMAIL>senzala@example.com</vCard:EMAIL>
+  </rdf:Description>
+
+ </rdf:RDF>
+
 =cut
 
 use Encode;
 use MIME::Base64;
 use Text::vCard::Addressbook;
 use Memoize;
+use Digest::SHA1 qw (sha1_hex);
 
 use constant NS => {"vCard" => "http://www.w3.org/2001/vcard-rdf/3.0#",
 		    "rdf"   => "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		    "rdfs"  => "http://www.w3.org/2000/01/rdf-schema#",
 		    "geo"   => "http://www.w3.org/2003/01/geo/wgs84_pos#",
 		    "foaf"  => "http://xmlns.com/foaf/0.1/"};
 
 sub import {
-    &memoize("_prepare_name");
+    &memoize("_prepare_name","_prepare_mbox");
 }
 
 =head1 PACKAGE METHODS
@@ -56,6 +96,23 @@ sub import {
 This method inherits from I<XML::SAX::Base>
 
 =cut
+
+sub new {
+    my $pkg  = shift;
+    my $self = $pkg->SUPER::new(@_);
+
+    if (! $self) {
+	return undef;
+    }
+
+    $self->{'__uri'}    = "#";
+    $self->{'__current'} = 0;
+
+    $self->{'__files'}  = [];
+    $self->{'__mboxes'} = {};
+
+    return bless $self, $pkg;
+}
 
 =head1 OBJECT METHODS
 
@@ -129,6 +186,13 @@ sub _render_doc {
 	$self->base($self->{'__files'}->[$self->{'__current'} ++]);
 	$self->_render_card($vcard);
     }
+
+    # Now render rdf:Description blocks for all
+    # the email addresses we've collected that
+    # point back to the current document using
+    # rdf:seeAlso
+
+    $self->_render_foaf_mboxes();
 	
     $self->end_element({Name => "rdf:RDF"});
     
@@ -434,6 +498,18 @@ sub _render_emails {
 			   $self->_pcdata({Name  => "rdf:value",
 					   Value => $email->value()});
 		       });
+
+    # Keep track of email addresses for
+    # dumping by '_render_foaf_mboxes'
+
+    my $base = $self->base();
+
+    foreach my $email (@$addresses) {
+	my $mbox = &_prepare_mbox($email->value());
+	
+	$self->{'__mboxes'}->{$mbox} ||= [];
+	push @{$self->{'__mboxes'}->{$mbox}}, $base;
+    }
 
     return 1;
 }
@@ -1096,6 +1172,37 @@ sub _mediaobj {
     return 1;
 }
 
+# memoized
+
+sub _prepare_mbox {
+    my $email_addr = shift;
+    return encode_utf8(sprintf("%smbox_sha1sum#%s",
+			       __PACKAGE__->_namespaces()->{foaf},
+			       sha1_hex($email_addr)));
+}
+
+sub _render_foaf_mboxes {
+    my $self = shift;
+
+    foreach my $mbox (keys %{$self->{'__mboxes'}}) {
+
+	$self->start_element({Name       => "rdf:Description",
+			      Attributes => {"{}rdf:about" => {Name  => "rdf:about",
+							       Value => $mbox}}});
+	foreach my $uri (@{$self->{'__mboxes'}->{$mbox}}) {
+
+	    $self->start_element({Name       => "rdfs:seeAlso",
+				  Attributes => {"{}rdf:resource" => {Name  => "rdf:resource",
+								      Value => $uri}}});
+	    $self->end_element({Name => "rdfs:seeAlso"});	    
+	}
+
+	$self->end_element({Name => "rdf:Description"});
+    }
+
+    return 1;
+}
+
 sub DESTROY {}
 
 =head1 NAMESPACES
@@ -1127,11 +1234,11 @@ namespaces :
 
 =head1 VERSION
 
-1.2
+1.3
 
 =head1 DATE
 
-$Date: 2004/11/16 17:05:13 $
+$Date: 2004/12/22 17:45:13 $
 
 =head1 AUTHOR
 
@@ -1142,6 +1249,8 @@ Aaron Straup Cope E<lt>ascope@cpan.orgE<gt>
 L<Text::vCard>
 
 L<XML::Generator::vCard>
+
+L<XML::Generator::RFC822::RDF>
 
 =head1 BUGS
 

@@ -1,4 +1,4 @@
-# $Id: 30-rdf.t,v 1.2 2004/10/17 23:05:35 asc Exp $
+# $Id: 30-rdf.t,v 1.4 2004/12/22 17:48:35 asc Exp $
 
 use strict;
 use Test::More;
