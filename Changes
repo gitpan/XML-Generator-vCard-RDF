@@ -1,5 +1,10 @@
 Revision history for Perl extension XML::Generator::vCard::RDF
 
+1.1	 Sun Oct 17 2004
+
+	 - UPDATED to reflect changes to Text::vCard
+	   1.9
+
 1.0	 Sat Oct 16 2004
 
 	 - initial release

@@ -9,7 +9,7 @@ WriteMakefile(
 	      'VERSION_FROM' => 'lib/XML/Generator/vCard/RDF.pm',
 	      'PREREQ_PM'    => {
 		  'XML::SAX'      => '0.12',
-		  'Text::vCard'   => '1.8',
+		  'Text::vCard'   => '1.9',
 		  'Encode'        => '0',
 		  'Memoize'       => '0',
 		  'Test::More'    => '0',

@@ -1,10 +1,10 @@
-# $Id: RDF.pm,v 1.15 2004/10/17 02:51:56 asc Exp $
+# $Id: RDF.pm,v 1.16 2004/10/17 23:05:35 asc Exp $
 use strict;
 
 package XML::Generator::vCard::RDF;
 use base qw (XML::SAX::Base);
 
-$XML::Generator::vCard::RDF::VERSION = '1.0';
+$XML::Generator::vCard::RDF::VERSION = '1.1';
 
 =head1 NAME
 
@@ -577,8 +577,29 @@ sub _render_org {
     }
 
     if (my $u = $org->unit()) {
-	$self->_pcdata({Name  => "vCard:Orgunit",
-			Value => $u});
+
+	my @units = grep { /\w/ } @$u;
+	my $count = scalar(@units);
+
+	if ($count == 1) {
+	    $self->_pcdata({Name  => "vCard:Orgunit",
+			    Value => $units[0]});
+	}
+
+	elsif ($count) {
+	    $self->start_element({Name => "vCard:Orgunit"});
+	    $self->start_element({Name => "rdf:Seq"});
+
+	    map {
+		$self->_pcdata({Name  => "rdf:li",
+				Value => $_});
+	    } @units;
+
+	    $self->end_element({Name => "rdf:Seq"});
+	    $self->end_element({Name => "vCard:Orgunit"});
+	}
+
+	else {}
     }
 
     $self->end_element({Name=>"vCard:ORG"});
@@ -1106,11 +1127,11 @@ namespaces :
 
 =head1 VERSION
 
-1.0
+1.1
 
 =head1 DATE
 
-$Date: 2004/10/17 02:51:56 $
+$Date: 2004/10/17 23:05:35 $
 
 =head1 AUTHOR
 

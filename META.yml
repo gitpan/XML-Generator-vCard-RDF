@@ -1,14 +1,14 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         XML-Generator-vCard-RDF
-version:      1.0
+version:      1.1
 version_from: lib/XML/Generator/vCard/RDF.pm
 installdirs:  site
 requires:
     Encode:                        0
     Memoize:                       0
     Test::More:                    0
-    Text::vCard:                   1.8
+    Text::vCard:                   1.9
     XML::SAX:                      0.12
 
 distribution_type: module

@@ -1,4 +1,4 @@
-# $Id: 30-rdf.t,v 1.1 2004/10/17 02:38:10 asc Exp $
+# $Id: 30-rdf.t,v 1.2 2004/10/17 23:05:35 asc Exp $
 
 use strict;
 use Test::More;
@@ -56,5 +56,5 @@ SKIP: {
   isa_ok($rdf_parser,"RDF::Simple::Parser");
   
   my @triples = $rdf_parser->parse_rdf($str_xml); 
-  cmp_ok(scalar(@triples),"==",29,"found 29 triples");
+  cmp_ok(scalar(@triples),"==",33,"found 33 triples");
 }

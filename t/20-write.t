@@ -1,4 +1,4 @@
-# $Id: 20-write.t,v 1.2 2004/10/17 02:50:20 asc Exp $
+# $Id: 20-write.t,v 1.3 2004/10/17 23:05:35 asc Exp $
 
 use strict;
 use Test::More;
@@ -534,7 +534,7 @@ d0RtTVQrbzc0L1NXTWtoSGNMcGJGNkhwbjh4Zi94WituOUQrMHMydmhVRWs1ajZCM2NUK2cyOC93
 QTU4dUU3ZnBqNEJZS1NhT3ZtdVBUeWRZZlRIeitsd2xkOU1mRHR3c2xKSmFkblVVOGYrZnI1K2tP
 T2VWa0pKcUk3anplajY3L080L0gwSGNmSHVzaFUwbEpENVF5WmZuS1c3NmZ5VUZGSk9ZMlk0UHcv
 aWtvSkpLZi8yUT09
-]]></rdf:value></rdf:li></rdf:Bag></vCard:PHOTO><vCard:ADR rdf:parseType='Resource'><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#pref' /><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#work' /><vCard:Street>177 Bernard o.</vCard:Street><vCard:Locality>Montreal</vCard:Locality><vCard:Region>Quebec</vCard:Region><vCard:Country>Canada</vCard:Country></vCard:ADR><vCard:TEL rdf:parseType='Resource'><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#pref' /><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#work' /><rdf:value>514/274-1464</rdf:value></vCard:TEL><vCard:GEO rdf:parseType='Resource'><geo:lat>45.5249</geo:lat><geo:lon>-73.6043</geo:lon></vCard:GEO><vCard:ORG rdf:parseType='Resource'><vCard:Orgnam>Senzala</vCard:Orgnam></vCard:ORG><vCard:CATEGORIES><rdf:Seq><rdf:li>montreal</rdf:li></rdf:Seq></vCard:CATEGORIES><vCard:NOTE rdf:parseType='Literal'><![CDATA[I had breakfast here with Maciej - the food is good, the coffee not so]]></vCard:NOTE></rdf:Description></rdf:RDF>);
+]]></rdf:value></rdf:li></rdf:Bag></vCard:PHOTO><vCard:ADR rdf:parseType='Resource'><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#pref' /><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#work' /><vCard:Street>177 Bernard o.</vCard:Street><vCard:Locality>Montreal</vCard:Locality><vCard:Region>Quebec</vCard:Region><vCard:Country>Canada</vCard:Country></vCard:ADR><vCard:TEL rdf:parseType='Resource'><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#pref' /><rdf:type rdf:resource='http://www.w3.org/2001/vcard-rdf/3.0#work' /><rdf:value>514/274-1464</rdf:value></vCard:TEL><vCard:GEO rdf:parseType='Resource'><geo:lat>45.5249</geo:lat><geo:lon>-73.6043</geo:lon></vCard:GEO><vCard:ORG rdf:parseType='Resource'><vCard:Orgnam>Senzala</vCard:Orgnam><vCard:Orgunit><rdf:Seq><rdf:li>foo</rdf:li><rdf:li>bar</rdf:li></rdf:Seq></vCard:Orgunit></vCard:ORG><vCard:CATEGORIES><rdf:Seq><rdf:li>montreal</rdf:li></rdf:Seq></vCard:CATEGORIES><vCard:NOTE rdf:parseType='Literal'><![CDATA[I had breakfast here with Maciej - the food is good, the coffee not so]]></vCard:NOTE></rdf:Description></rdf:RDF>);
 
 SKIP: {
   eval { 
